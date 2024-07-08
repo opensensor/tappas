@@ -6,6 +6,13 @@ readonly INSTALLATION_DIR=/opt/hailo/tappas
 GSTREAMER_VERSION=$(gst-launch-1.0 --gst-version | awk '{print $NF}' | cut -d. -f1,2)
 num_cores_to_use=$(($(nproc)/2))
 
+if [[ -z "$TAPPAS_WORKSPACE" ]]; then
+  export TAPPAS_WORKSPACE=$(dirname "$(dirname "$(realpath "$0")")")
+  echo "No TAPPAS_WORKSPACE in environment found, using the default one $TAPPAS_WORKSPACE"
+fi
+
+
+
 function install_plugins_good() {
   if [[ ! $GSTREAMER_VERSION == @(1.14|1.16) ]]; then 
   	return 0

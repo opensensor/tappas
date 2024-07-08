@@ -85,5 +85,6 @@ void yolov5_personface(HailoROIPtr roi, void *params_void_ptr);
 void yolov5_personface_letterbox(HailoROIPtr roi, void *params_void_ptr);
 void yolov5_no_faces_letterbox(HailoROIPtr roi, void *params_void_ptr);
 void yolov5_adas(HailoROIPtr roi, void *params_void_ptr);
+void yolov5_my(HailoROIPtr roi, void *params_void_ptr);
 
 __END_DECLS

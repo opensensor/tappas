@@ -1,3 +1,4 @@
+#include <regex>
 #include "hailo_nms_decode.hpp"
 #include "yolo_hailortpp.hpp"
 #include "common/labels/coco_eighty.hpp"
@@ -72,7 +73,22 @@ void yolov5m_vehicles(HailoROIPtr roi)
 
 void yolov5m_vehicles_nv12(HailoROIPtr roi)
 {
+    if (!roi->has_tensors())
+    {
+        return;
+    }
     auto post = HailoNMSDecode(roi->get_tensor("yolov5m_vehicles_nv12/yolov5_nms_postprocess"), yolo_vehicles_labels);
+    auto detections = post.decode<float32_t, common::hailo_bbox_float32_t>();
+    hailo_common::add_detections(roi, detections);
+}
+
+void yolov5s_personface(HailoROIPtr roi)
+{
+    if (!roi->has_tensors())
+    {
+        return;
+    }
+    auto post = HailoNMSDecode(roi->get_tensor("yolov5s_personface_nv12/yolov5_nms_postprocess"), common::coco_eighty);
     auto detections = post.decode<float32_t, common::hailo_bbox_float32_t>();
     hailo_common::add_detections(roi, detections);
 }
@@ -95,7 +111,35 @@ void yolov5_no_persons(HailoROIPtr roi)
     hailo_common::add_detections(roi, detections);
 }
 
+
+void hailo_yolo_inference(HailoROIPtr roi)
+{
+    if (!roi->has_tensors())
+    {
+        return;
+    }
+    auto post = HailoNMSDecode(roi->get_tensor("hailo_yolo_inference/yolov5_nms_postprocess"), common::coco_eighty);
+    auto detections = post.decode<float32_t, common::hailo_bbox_float32_t>();
+    hailo_common::add_detections(roi, detections);
+}
+
+
 void filter(HailoROIPtr roi)
 {
-    yolov5(roi);
+    if (!roi->has_tensors())
+    {
+        return;
+    }
+    std::vector<HailoTensorPtr> tensors = roi->get_tensors();
+    // find the nms tensor
+    for (auto tensor : tensors)
+    {
+        if (std::regex_search(tensor->name(), std::regex("nms_postprocess"))) 
+        {
+            auto post = HailoNMSDecode(tensor, common::coco_eighty);
+            auto detections = post.decode<float32_t, common::hailo_bbox_float32_t>();
+            hailo_common::add_detections(roi, detections);
+        }
+    }
 }
+
